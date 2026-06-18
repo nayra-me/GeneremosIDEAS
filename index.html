@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorio de Creatividad | Técnicas para Generar Ideas</title>
+  <meta name="description" content="Herramienta interactiva para aplicar técnicas de creatividad paso a paso: Estímulos Aleatorios, SCAMPER, Reto a la Lógica y Analogías.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a1a;
+      --bg-secondary: #12122a;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-card-hover: rgba(255,255,255,0.08);
+      --bg-glass: rgba(255,255,255,0.06);
+      --border-glass: rgba(255,255,255,0.1);
+      --text-primary: #f0f0ff;
+      --text-secondary: #a0a0c0;
+      --text-muted: #6a6a8a;
+      --accent-purple: #8b5cf6;
+      --accent-purple-glow: rgba(139,92,246,0.3);
+      --accent-cyan: #06b6d4;
+      --accent-cyan-glow: rgba(6,182,212,0.3);
+      --accent-pink: #ec4899;
+      --accent-orange: #f97316;
+      --accent-green: #10b981;
+      --accent-yellow: #eab308;
+      --danger: #ef4444;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow-glow: 0 0 40px rgba(139,92,246,0.15);
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* === BACKGROUND EFFECTS === */
+    .bg-orbs {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .bg-orbs .orb {
+      position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.15;
+      animation: orbFloat 20s ease-in-out infinite;
+    }
+    .bg-orbs .orb:nth-child(1) { width: 500px; height: 500px; background: var(--accent-purple); top: -10%; left: -10%; animation-delay: 0s; }
+    .bg-orbs .orb:nth-child(2) { width: 400px; height: 400px; background: var(--accent-cyan); top: 50%; right: -10%; animation-delay: -7s; }
+    .bg-orbs .orb:nth-child(3) { width: 350px; height: 350px; background: var(--accent-pink); bottom: -10%; left: 30%; animation-delay: -14s; }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    /* === LAYOUT === */
+    #app { position: relative; z-index: 1; min-height: 100vh; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* === SCREENS === */
+    .screen { display: none; animation: fadeIn 0.5s ease; }
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === HOME SCREEN === */
+    .home-header {
+      text-align: center; padding: 60px 0 40px;
+    }
+    .home-header .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 3rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan), var(--accent-pink));
+      background-size: 200% 200%;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 4s ease infinite;
+      margin-bottom: 12px;
+    }
+    .home-header .subtitle {
+      font-size: 1.1rem; color: var(--text-secondary); font-weight: 300;
+      max-width: 500px; margin: 0 auto;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Student input */
+    .student-input-section {
+      max-width: 480px; margin: 0 auto 48px;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      border-radius: var(--radius); padding: 24px;
+      backdrop-filter: blur(20px);
+    }
+    .student-input-section label {
+      display: block; font-size: 0.85rem; color: var(--text-secondary);
+      margin-bottom: 8px; font-weight: 500;
+    }
+    .student-input-section input {
+      width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05);
+      color: var(--text-primary); font-size: 1rem; font-family: inherit;
+      transition: var(--transition); outline: none;
+    }
+    .student-input-section input:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px var(--accent-purple-glow);
+    }
+
+    /* Technique cards grid */
+    .techniques-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; padding-bottom: 80px;
+    }
+
+    .technique-card {
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      border-radius: var(--radius); padding: 28px;
+      cursor: pointer; transition: var(--transition);
+      backdrop-filter: blur(20px);
+      position: relative; overflow: hidden;
+    }
+    .technique-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--card-accent), transparent);
+      opacity: 0; transition: var(--transition);
+    }
+    .technique-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--card-accent);
+      box-shadow: 0 8px 40px var(--card-glow);
+    }
+    .technique-card:hover::before { opacity: 0.05; }
+
+    .technique-card .card-icon {
+      font-size: 2.5rem; margin-bottom: 16px;
+      display: inline-block; animation: bounce 2s ease infinite;
+    }
+    .technique-card:nth-child(odd) .card-icon { animation-delay: -0.5s; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .technique-card .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;
+    }
+    .technique-card .card-desc {
+      font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .technique-card .card-meta {
+      display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-muted);
+    }
+    .technique-card .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* === TECHNIQUE SCREEN === */
+    .technique-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; flex-wrap: wrap; gap: 16px;
+    }
+    .technique-header .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm); padding: 10px 18px;
+      color: var(--text-secondary); cursor: pointer; font-size: 0.9rem;
+      font-family: inherit; transition: var(--transition);
+    }
+    .technique-header .back-btn:hover {
+      background: var(--bg-card-hover); color: var(--text-primary);
+    }
+    .technique-header .technique-title-bar {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .technique-header .technique-title-bar .t-icon { font-size: 1.8rem; }
+    .technique-header .technique-title-bar h2 {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700;
+    }
+
+    /* Timers bar */
+    .timers-bar {
+      display: flex; gap: 16px; justify-content: center;
+      margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .timer-box {
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm); padding: 12px 20px;
+      text-align: center; min-width: 150px;
+      backdrop-filter: blur(20px);
+    }
+    .timer-box .timer-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-muted); margin-bottom: 4px;
+    }
+    .timer-box .timer-value {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 1.8rem; font-weight: 700;
+    }
+    .timer-box.step-timer .timer-value { color: var(--accent-cyan); }
+    .timer-box.total-timer .timer-value { color: var(--accent-purple); }
+    .timer-box.warning .timer-value { color: var(--accent-yellow); }
+    .timer-box.danger .timer-value { color: var(--danger); animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Progress bar */
+    .progress-section { margin-bottom: 32px; }
+    .progress-steps {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      flex-wrap: wrap;
+    }
+    .progress-step {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .progress-dot {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg-glass); border: 2px solid var(--border-glass);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+      transition: var(--transition); cursor: pointer;
+    }
+    .progress-dot.active {
+      background: var(--accent-purple); border-color: var(--accent-purple);
+      color: white; box-shadow: 0 0 20px var(--accent-purple-glow);
+      transform: scale(1.15);
+    }
+    .progress-dot.completed {
+      background: var(--accent-green); border-color: var(--accent-green);
+      color: white;
+    }
+    .progress-line {
+      width: 30px; height: 2px; background: var(--border-glass);
+      transition: var(--transition);
+    }
+    .progress-line.completed { background: var(--accent-green); }
+
+    /* Step content */
+    .step-container {
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      border-radius: var(--radius); padding: 32px;
+      backdrop-filter: blur(20px);
+      margin-bottom: 24px;
+      animation: fadeIn 0.4s ease;
+    }
+    .step-container .step-badge {
+      display: inline-block; padding: 4px 14px;
+      background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+      color: var(--accent-purple); margin-bottom: 12px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .step-container h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;
+    }
+    .step-container .step-instructions {
+      color: var(--text-secondary); line-height: 1.7; margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+    .step-container .step-instructions strong { color: var(--text-primary); }
+    .step-container .step-tip {
+      background: rgba(6,182,212,0.08); border-left: 3px solid var(--accent-cyan);
+      padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 20px; font-size: 0.85rem; color: var(--accent-cyan);
+    }
+
+    /* Text areas */
+    .idea-input-group { margin-bottom: 16px; }
+    .idea-input-group label {
+      display: block; font-size: 0.85rem; color: var(--text-secondary);
+      margin-bottom: 8px; font-weight: 500;
+    }
+    .idea-textarea {
+      width: 100%; min-height: 120px; padding: 16px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm); color: var(--text-primary);
+      font-family: inherit; font-size: 0.95rem; line-height: 1.6;
+      resize: vertical; transition: var(--transition); outline: none;
+    }
+    .idea-textarea:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px var(--accent-purple-glow);
+      background: rgba(255,255,255,0.05);
+    }
+    .idea-textarea::placeholder { color: var(--text-muted); }
+
+    /* Random stimulus generator */
+    .stimulus-generator {
+      text-align: center; margin: 20px 0;
+    }
+    .stimulus-display {
+      background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(6,182,212,0.1));
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: var(--radius); padding: 32px;
+      margin: 16px 0;
+      min-height: 100px; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 8px;
+    }
+    .stimulus-display .stimulus-emoji { font-size: 3rem; }
+    .stimulus-display .stimulus-word {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stimulus-display .stimulus-category {
+      font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    /* SCAMPER letter badge */
+    .scamper-letter {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 56px; height: 56px; border-radius: 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem; font-weight: 800; color: white;
+      margin-bottom: 16px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: var(--radius-sm);
+      font-family: inherit; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: var(--transition); border: none;
+      outline: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-purple), #7c3aed);
+      color: white; box-shadow: 0 4px 20px var(--accent-purple-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-purple-glow);
+    }
+    .btn-secondary {
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      color: var(--text-secondary);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card-hover); color: var(--text-primary);
+    }
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent-cyan), #0891b2);
+      color: white; font-size: 1.05rem; padding: 14px 32px;
+      box-shadow: 0 4px 20px var(--accent-cyan-glow);
+    }
+    .btn-generate:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 30px var(--accent-cyan-glow);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent-green), #059669);
+      color: white;
+    }
+    .btn-success:hover { transform: translateY(-2px); }
+    .btn-pdf {
+      background: linear-gradient(135deg, var(--accent-pink), #db2777);
+      color: white; font-size: 1.05rem; padding: 14px 32px;
+      box-shadow: 0 4px 20px rgba(236,72,153,0.3);
+    }
+    .btn-pdf:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(236,72,153,0.4);
+    }
+
+    .nav-buttons {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+    }
+
+    /* Timer controls */
+    .timer-controls {
+      display: flex; gap: 8px; justify-content: center; margin-top: 12px;
+    }
+    .timer-controls .btn { padding: 8px 16px; font-size: 0.85rem; }
+
+    /* === SUMMARY SCREEN === */
+    .summary-header {
+      text-align: center; padding: 50px 0 32px;
+    }
+    .summary-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;
+    }
+    .summary-header p { color: var(--text-secondary); font-size: 1rem; }
+
+    .summary-card {
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      border-radius: var(--radius); padding: 28px;
+      backdrop-filter: blur(20px); margin-bottom: 20px;
+    }
+    .summary-card h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;
+      color: var(--accent-purple);
+    }
+    .summary-card .summary-step-title {
+      font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;
+    }
+    .summary-card .summary-content {
+      color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap;
+      font-size: 0.95rem; background: rgba(0,0,0,0.2);
+      padding: 14px 18px; border-radius: var(--radius-sm);
+    }
+
+    .summary-actions {
+      text-align: center; padding: 24px 0 60px;
+      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    }
+
+    /* === PDF STYLES (hidden) === */
+    #pdf-content {
+      position: absolute; left: -9999px; top: -9999px;
+      width: 700px; font-family: 'Inter', Arial, sans-serif;
+      background: white; color: #1a1a2e; padding: 40px;
+    }
+    #pdf-content h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px; color: #8b5cf6; margin-bottom: 4px;
+    }
+    #pdf-content .pdf-subtitle {
+      font-size: 13px; color: #666; margin-bottom: 6px;
+    }
+    #pdf-content .pdf-info {
+      font-size: 12px; color: #888; margin-bottom: 20px;
+      padding-bottom: 16px; border-bottom: 2px solid #8b5cf6;
+    }
+    #pdf-content .pdf-section {
+      margin-bottom: 18px; page-break-inside: avoid;
+    }
+    #pdf-content .pdf-section h3 {
+      font-size: 15px; color: #8b5cf6; margin-bottom: 3px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    #pdf-content .pdf-section .pdf-step-label {
+      font-size: 11px; color: #999; margin-bottom: 6px;
+    }
+    #pdf-content .pdf-section .pdf-text {
+      font-size: 13px; color: #333; line-height: 1.6;
+      background: #f8f8fc; padding: 12px 14px; border-radius: 8px;
+      border-left: 3px solid #8b5cf6; white-space: pre-wrap;
+    }
+    #pdf-content .pdf-footer {
+      margin-top: 30px; padding-top: 16px; border-top: 1px solid #ddd;
+      font-size: 11px; color: #999; text-align: center;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 640px) {
+      .home-header .logo { font-size: 2rem; }
+      .home-header { padding: 40px 0 24px; }
+      .techniques-grid { grid-template-columns: 1fr; }
+      .technique-header { flex-direction: column; align-items: flex-start; }
+      .timers-bar { flex-direction: column; align-items: stretch; }
+      .timer-box .timer-value { font-size: 1.4rem; }
+      .step-container { padding: 20px; }
+      .progress-line { width: 16px; }
+      .progress-dot { width: 30px; height: 30px; font-size: 0.7rem; }
+      .nav-buttons { flex-direction: column; }
+      .nav-buttons .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <div id="app">
+    <!-- ==================== HOME SCREEN ==================== -->
+    <div id="screen-home" class="screen active">
+      <div class="container">
+        <header class="home-header">
+          <div class="logo">💡 Laboratorio de Creatividad</div>
+          <p class="subtitle">Aplica técnicas de creatividad paso a paso, registra tus ideas y descárgalas en PDF</p>
+        </header>
+
+        <div class="student-input-section">
+          <label for="student-name">👤 Tu nombre completo</label>
+          <input type="text" id="student-name" placeholder="Escribe tu nombre aquí...">
+        </div>
+
+        <h3 style="text-align:center; margin-bottom:24px; color:var(--text-secondary); font-weight:400; font-size:1rem;">
+          Elige una técnica para comenzar
+        </h3>
+
+        <div class="techniques-grid">
+          <!-- Card 1: Estímulos Aleatorios -->
+          <div class="technique-card" style="--card-accent: var(--accent-cyan); --card-glow: var(--accent-cyan-glow);" onclick="startTechnique('random')">
+            <div class="card-icon">🎲</div>
+            <div class="card-title">Estímulos Aleatorios</div>
+            <div class="card-desc">Genera conexiones inesperadas entre tu reto y estímulos al azar para producir ideas originales.</div>
+            <div class="card-meta">
+              <span>⏱ ~20 min</span>
+              <span>📋 5 pasos</span>
+            </div>
+          </div>
+
+          <!-- Card 2: SCAMPER -->
+          <div class="technique-card" style="--card-accent: var(--accent-purple); --card-glow: var(--accent-purple-glow);" onclick="startTechnique('scamper')">
+            <div class="card-icon">🔧</div>
+            <div class="card-title">SCAMPER</div>
+            <div class="card-desc">Transforma ideas existentes con 7 operadores: Sustituir, Combinar, Adaptar, Modificar, Eliminar, Poner otros usos, Reorganizar.</div>
+            <div class="card-meta">
+              <span>⏱ ~30 min</span>
+              <span>📋 9 pasos</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Reto a la Lógica -->
+          <div class="technique-card" style="--card-accent: var(--accent-orange); --card-glow: rgba(249,115,22,0.3);" onclick="startTechnique('logic')">
+            <div class="card-icon">🧠</div>
+            <div class="card-title">Reto a la Lógica</div>
+            <div class="card-desc">Desafía los supuestos convencionales invirtiendo la lógica para descubrir soluciones radicalmente diferentes.</div>
+            <div class="card-meta">
+              <span>⏱ ~20 min</span>
+              <span>📋 5 pasos</span>
+            </div>
+          </div>
+
+          <!-- Card 4: Analogías / Metáforas -->
+          <div class="technique-card" style="--card-accent: var(--accent-green); --card-glow: rgba(16,185,129,0.3);" onclick="startTechnique('analogies')">
+            <div class="card-icon">🔗</div>
+            <div class="card-title">Analogías y Metáforas</div>
+            <div class="card-desc">Transfiere conocimiento de un dominio diferente a tu problema para encontrar soluciones creativas por asociación.</div>
+            <div class="card-meta">
+              <span>⏱ ~25 min</span>
+              <span>📋 5 pasos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TECHNIQUE SCREEN ==================== -->
+    <div id="screen-technique" class="screen">
+      <div class="container">
+        <div class="technique-header">
+          <button class="back-btn" onclick="goHome()">← Volver</button>
+          <div class="technique-title-bar">
+            <span class="t-icon" id="tech-icon"></span>
+            <h2 id="tech-title"></h2>
+          </div>
+        </div>
+
+        <div class="timers-bar">
+          <div class="timer-box step-timer" id="step-timer-box">
+            <div class="timer-label">⏱ Tiempo del paso</div>
+            <div class="timer-value" id="step-timer">00:00</div>
+            <div class="timer-controls">
+              <button class="btn btn-secondary" onclick="toggleStepTimer()" id="btn-timer-toggle">▶ Iniciar</button>
+              <button class="btn btn-secondary" onclick="resetStepTimer()">↺ Reiniciar</button>
+            </div>
+          </div>
+          <div class="timer-box total-timer">
+            <div class="timer-label">⏳ Tiempo total</div>
+            <div class="timer-value" id="total-timer">00:00</div>
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-steps" id="progress-steps"></div>
+        </div>
+
+        <div id="step-content"></div>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary" id="btn-prev" onclick="prevStep()">← Anterior</button>
+          <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Siguiente →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SUMMARY SCREEN ==================== -->
+    <div id="screen-summary" class="screen">
+      <div class="container">
+        <div class="summary-header">
+          <h2>🎉 ¡Proceso completado!</h2>
+          <p>Aquí tienes un resumen de todas tus ideas</p>
+        </div>
+        <div id="summary-content"></div>
+        <div class="summary-actions">
+          <button class="btn btn-pdf" onclick="downloadPDF()">📄 Descargar PDF</button>
+          <button class="btn btn-secondary" onclick="goHome()">🏠 Volver al inicio</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden PDF content -->
+  <div id="pdf-content"></div>
+
+  <script>
+    // ==================== DATA ====================
+    const STIMULI_BANK = [
+      { word: 'Espejo', emoji: '🪞', cat: 'Objeto' },
+      { word: 'Reloj', emoji: '⏰', cat: 'Objeto' },
+      { word: 'Paraguas', emoji: '☂️', cat: 'Objeto' },
+      { word: 'Escalera', emoji: '🪜', cat: 'Objeto' },
+      { word: 'Puente', emoji: '🌉', cat: 'Objeto' },
+      { word: 'Semáforo', emoji: '🚦', cat: 'Objeto' },
+      { word: 'Telescopio', emoji: '🔭', cat: 'Objeto' },
+      { word: 'Brújula', emoji: '🧭', cat: 'Objeto' },
+      { word: 'Vela', emoji: '🕯️', cat: 'Objeto' },
+      { word: 'Llave', emoji: '🔑', cat: 'Objeto' },
+      { word: 'Ancla', emoji: '⚓', cat: 'Objeto' },
+      { word: 'Filtro', emoji: '☕', cat: 'Objeto' },
+      { word: 'Río', emoji: '🏞️', cat: 'Naturaleza' },
+      { word: 'Semilla', emoji: '🌱', cat: 'Naturaleza' },
+      { word: 'Tormenta', emoji: '⛈️', cat: 'Naturaleza' },
+      { word: 'Arcoíris', emoji: '🌈', cat: 'Naturaleza' },
+      { word: 'Volcán', emoji: '🌋', cat: 'Naturaleza' },
+      { word: 'Mariposa', emoji: '🦋', cat: 'Naturaleza' },
+      { word: 'Coral', emoji: '🪸', cat: 'Naturaleza' },
+      { word: 'Raíz', emoji: '🌿', cat: 'Naturaleza' },
+      { word: 'Luna', emoji: '🌙', cat: 'Naturaleza' },
+      { word: 'Colmena', emoji: '🐝', cat: 'Naturaleza' },
+      { word: 'Pulpo', emoji: '🐙', cat: 'Naturaleza' },
+      { word: 'Camaleón', emoji: '🦎', cat: 'Naturaleza' },
+      { word: 'Laberinto', emoji: '🏛️', cat: 'Concepto' },
+      { word: 'Ritmo', emoji: '🥁', cat: 'Concepto' },
+      { word: 'Equilibrio', emoji: '⚖️', cat: 'Concepto' },
+      { word: 'Red', emoji: '🕸️', cat: 'Concepto' },
+      { word: 'Espiral', emoji: '🌀', cat: 'Concepto' },
+      { word: 'Eco', emoji: '📢', cat: 'Concepto' },
+      { word: 'Sombra', emoji: '👤', cat: 'Concepto' },
+      { word: 'Onda', emoji: '🌊', cat: 'Concepto' },
+      { word: 'Ciclo', emoji: '🔄', cat: 'Concepto' },
+      { word: 'Frontera', emoji: '🗺️', cat: 'Concepto' },
+      { word: 'Cocinar', emoji: '👨‍🍳', cat: 'Acción' },
+      { word: 'Volar', emoji: '✈️', cat: 'Acción' },
+      { word: 'Tejer', emoji: '🧶', cat: 'Acción' },
+      { word: 'Explorar', emoji: '🧭', cat: 'Acción' },
+      { word: 'Construir', emoji: '🏗️', cat: 'Acción' },
+      { word: 'Traducir', emoji: '🌐', cat: 'Acción' },
+    ];
+
+    const ANALOGY_DOMAINS = [
+      { name: 'Naturaleza', emoji: '🌿', examples: 'ecosistemas, evolución, simbiosis, camuflaje, migración' },
+      { name: 'Deportes', emoji: '⚽', examples: 'estrategia, equipo, entrenamiento, reglas, competencia' },
+      { name: 'Cocina', emoji: '👨‍🍳', examples: 'ingredientes, recetas, fermentación, sazón, presentación' },
+      { name: 'Música', emoji: '🎵', examples: 'armonía, ritmo, improvisación, orquesta, composición' },
+      { name: 'Arquitectura', emoji: '🏛️', examples: 'cimientos, estructura, fachada, espacios, materiales' },
+      { name: 'Medicina', emoji: '🏥', examples: 'diagnóstico, tratamiento, prevención, sistema inmune, cirugía' },
+      { name: 'Viajes', emoji: '✈️', examples: 'rutas, destinos, equipaje, guías, descubrimiento' },
+      { name: 'Cine', emoji: '🎬', examples: 'guion, escenas, edición, personajes, narrativa' },
+    ];
+
+    const SCAMPER_COLORS = ['#8b5cf6','#06b6d4','#10b981','#f97316','#ef4444','#ec4899','#eab308'];
+
+    const TECHNIQUES = {
+      random: {
+        name: 'Estímulos Aleatorios',
+        icon: '🎲',
+        steps: [
+          {
+            title: 'Define tu reto creativo',
+            time: 3,
+            instructions: 'Escribe de forma clara y concisa el <strong>problema o desafío</strong> que quieres resolver. Cuanto más específico, mejores resultados obtendrás.',
+            tip: '💡 Reformula tu reto como pregunta: "¿Cómo podríamos...?" o "¿De qué manera...?"',
+            inputLabel: '¿Cuál es tu reto creativo?',
+            placeholder: 'Ej: ¿Cómo podríamos hacer que los estudiantes se interesen más por las matemáticas?'
+          },
+          {
+            title: 'Genera un estímulo aleatorio',
+            time: 2,
+            instructions: 'Presiona el botón para obtener una <strong>palabra o concepto al azar</strong>. Este estímulo te sacará de tu zona de confort mental. Puedes generar varios hasta que uno te intrigue.',
+            tip: '💡 No busques el estímulo "perfecto". La magia está en forzar conexiones con estímulos que parecen irrelevantes.',
+            hasGenerator: true,
+            inputLabel: '¿Qué estímulo(s) elegiste y por qué te llamó la atención?',
+            placeholder: 'Escribe el estímulo elegido y qué te sugiere a primera vista...'
+          },
+          {
+            title: 'Explora atributos del estímulo',
+            time: 5,
+            instructions: 'Lista todas las <strong>características, funciones y asociaciones</strong> del estímulo elegido. Piensa en: ¿qué hace?, ¿cómo funciona?, ¿qué forma tiene?, ¿con qué se relaciona?, ¿qué sensaciones evoca?',
+            tip: '💡 Escribe al menos 8-10 atributos. Entre más detalles, más conexiones posibles encontrarás.',
+            inputLabel: 'Atributos y características del estímulo',
+            placeholder: 'Ej: (Espejo) → refleja, invierte, multiplica, es frágil, necesita luz, distorsiona, muestra la verdad...'
+          },
+          {
+            title: 'Fuerza conexiones',
+            time: 5,
+            instructions: 'Ahora viene la parte clave: <strong>conecta cada atributo del estímulo con tu reto creativo</strong>. Pregúntate: "¿Cómo aplicaría este atributo a mi problema?" No descartes nada, escribe todo lo que se te ocurra.',
+            tip: '💡 Las conexiones más absurdas suelen producir las ideas más innovadoras. ¡No censures!',
+            inputLabel: 'Conexiones entre el estímulo y tu reto',
+            placeholder: 'Ej: "Refleja" → ¿Y si las matemáticas reflejaran la vida real del estudiante?\n"Multiplica" → ¿Y si cada problema resuelto generara dos problemas nuevos como un juego?'
+          },
+          {
+            title: 'Desarrolla tus mejores ideas',
+            time: 5,
+            instructions: 'Revisa las conexiones del paso anterior y <strong>selecciona las 2-3 ideas más prometedoras</strong>. Desarróllalas con más detalle: ¿cómo funcionarían?, ¿qué necesitarías?, ¿qué las hace originales?',
+            tip: '💡 Una buena idea creativa es aquella que es tanto novedosa como útil para resolver el reto.',
+            inputLabel: 'Tus mejores ideas desarrolladas',
+            placeholder: 'Describe tus ideas con el mayor detalle posible...'
+          }
+        ]
+      },
+
+      scamper: {
+        name: 'SCAMPER',
+        icon: '🔧',
+        steps: [
+          {
+            title: 'Define tu reto creativo',
+            time: 3,
+            instructions: 'Describe el <strong>producto, servicio, proceso o situación</strong> que quieres mejorar o transformar. SCAMPER funciona mejor cuando tienes algo existente que quieres reinventar.',
+            tip: '💡 Puede ser algo cotidiano: una clase, un producto, un proceso, un evento, un servicio.',
+            inputLabel: '¿Qué quieres transformar?',
+            placeholder: 'Ej: La forma tradicional de dar una clase de historia en preparatoria...'
+          },
+          {
+            title: 'S — Sustituir',
+            time: 3,
+            scamperLetter: 'S',
+            scamperColor: SCAMPER_COLORS[0],
+            instructions: '¿Qué <strong>componentes, materiales, personas, reglas o procesos</strong> puedes sustituir? ¿Qué pasaría si cambias un elemento por otro completamente diferente?',
+            tip: '💡 Preguntas clave: ¿Qué puedo usar en su lugar? ¿Quién puede hacerlo en vez de...? ¿Qué otro material/proceso?',
+            inputLabel: 'Ideas de sustitución',
+            placeholder: 'Ej: Sustituir al profesor por estudiantes que enseñen temas. Sustituir libros por podcasts...'
+          },
+          {
+            title: 'C — Combinar',
+            time: 3,
+            scamperLetter: 'C',
+            scamperColor: SCAMPER_COLORS[1],
+            instructions: '¿Qué <strong>ideas, funciones, componentes o conceptos</strong> puedes combinar? ¿Puedes fusionar dos cosas que normalmente están separadas?',
+            tip: '💡 Preguntas clave: ¿Qué pasaría si junto X con Y? ¿Puedo mezclar propósitos? ¿Combinar audiencias?',
+            inputLabel: 'Ideas de combinación',
+            placeholder: 'Ej: Combinar clase de historia con escape room. Fusionar tarea con juego de rol...'
+          },
+          {
+            title: 'A — Adaptar',
+            time: 3,
+            scamperLetter: 'A',
+            scamperColor: SCAMPER_COLORS[2],
+            instructions: '¿Qué puedes <strong>adaptar o tomar prestado</strong> de otro contexto? ¿Qué idea de otro campo o época podrías aplicar aquí?',
+            tip: '💡 Preguntas clave: ¿Qué otra cosa es parecida? ¿Qué idea de otro sector puedo copiar? ¿Qué funcionó en el pasado?',
+            inputLabel: 'Ideas de adaptación',
+            placeholder: 'Ej: Adaptar la mecánica de videojuegos (niveles, logros) a la clase. Adaptar el modelo TED Talks...'
+          },
+          {
+            title: 'M — Modificar / Magnificar',
+            time: 3,
+            scamperLetter: 'M',
+            scamperColor: SCAMPER_COLORS[3],
+            instructions: '¿Qué puedes <strong>modificar, magnificar o minimizar</strong>? ¿Qué pasaría si cambias el tamaño, la forma, el color, la frecuencia o la intensidad?',
+            tip: '💡 Preguntas clave: ¿Qué pasa si lo hago más grande/pequeño? ¿Más frecuente/raro? ¿Más rápido/lento?',
+            inputLabel: 'Ideas de modificación',
+            placeholder: 'Ej: Magnificar la participación: que TODOS expongan cada clase. Minimizar la duración: micro-lecciones de 5 min...'
+          },
+          {
+            title: 'E — Eliminar',
+            time: 3,
+            scamperLetter: 'E',
+            scamperColor: SCAMPER_COLORS[4],
+            instructions: '¿Qué puedes <strong>eliminar, simplificar o reducir</strong>? ¿Qué pasaría si quitas algo que parece esencial? ¿Qué es realmente innecesario?',
+            tip: '💡 Preguntas clave: ¿Qué sobra? ¿Qué pasaría si elimino esta regla? ¿Puedo simplificar el proceso?',
+            inputLabel: 'Ideas de eliminación',
+            placeholder: 'Ej: Eliminar los exámenes escritos. Eliminar las filas de butacas. Eliminar la calificación numérica...'
+          },
+          {
+            title: 'P — Poner en otros usos',
+            time: 3,
+            scamperLetter: 'P',
+            scamperColor: SCAMPER_COLORS[5],
+            instructions: '¿Para qué <strong>otros usos</strong> podría servir? ¿Quién más podría beneficiarse? ¿En qué otro contexto funcionaría?',
+            tip: '💡 Preguntas clave: ¿De qué otra forma se puede usar? ¿Quién más lo necesita? ¿Funciona en otro mercado?',
+            inputLabel: 'Ideas de otros usos',
+            placeholder: 'Ej: Que las presentaciones de clase sirvan como contenido para redes sociales educativas...'
+          },
+          {
+            title: 'R — Reorganizar / Revertir',
+            time: 3,
+            scamperLetter: 'R',
+            scamperColor: SCAMPER_COLORS[6],
+            instructions: '¿Qué puedes <strong>reorganizar, invertir o hacer al revés</strong>? ¿Qué pasa si cambias el orden, intercambias roles o inviertes la secuencia?',
+            tip: '💡 Preguntas clave: ¿Y si lo hago al revés? ¿Si intercambio roles? ¿Si empiezo por el final?',
+            inputLabel: 'Ideas de reorganización',
+            placeholder: 'Ej: Empezar la clase por las conclusiones y "retroceder" hasta el origen. Que los alumnos pongan el examen...'
+          },
+          {
+            title: 'Selecciona tus mejores ideas',
+            time: 4,
+            instructions: 'Revisa todas las ideas que generaste en cada letra de SCAMPER. <strong>Elige las 3-5 más prometedoras</strong> y desarróllalas con más detalle.',
+            tip: '💡 Busca ideas que puedas combinar entre sí. A veces la mejor solución mezcla ideas de varias letras.',
+            inputLabel: 'Tus mejores ideas SCAMPER desarrolladas',
+            placeholder: 'Selecciona y desarrolla tus ideas más prometedoras...'
+          }
+        ]
+      },
+
+      logic: {
+        name: 'Reto a la Lógica',
+        icon: '🧠',
+        steps: [
+          {
+            title: 'Define tu reto creativo',
+            time: 3,
+            instructions: 'Describe claramente el <strong>problema, situación o tema</strong> sobre el que quieres generar ideas. Esta técnica funciona desafiando lo que damos por sentado.',
+            tip: '💡 Elige un tema en el que sientas que "siempre se ha hecho así" o donde las soluciones parecen agotadas.',
+            inputLabel: '¿Cuál es tu reto?',
+            placeholder: 'Ej: Mejorar la experiencia del transporte público en la ciudad...'
+          },
+          {
+            title: 'Lista supuestos y convenciones',
+            time: 5,
+            instructions: 'Escribe todas las <strong>suposiciones, reglas no escritas y "verdades" aceptadas</strong> sobre tu tema. ¿Qué da todo el mundo por hecho? ¿Qué creencias limitan las soluciones?',
+            tip: '💡 Escribe al menos 6-8 supuestos. Busca los más "obvios" — esos son los más poderosos para desafiar.',
+            inputLabel: 'Supuestos y convenciones (uno por línea)',
+            placeholder: 'Ej:\n- El transporte público tiene horarios fijos\n- Los usuarios van de un punto A a un punto B\n- El conductor maneja el vehículo\n- Se paga por viaje individual\n- Las rutas están predefinidas...'
+          },
+          {
+            title: 'Invierte los supuestos',
+            time: 5,
+            instructions: 'Toma cada supuesto y <strong>inviértelo o llévalo al extremo opuesto</strong>. No te preocupes si suena absurdo — ese es el objetivo. La inversión es una provocación, no una solución final.',
+            tip: '💡 Usa la fórmula: "¿Y si en lugar de [supuesto], fuera [lo opuesto]?"',
+            inputLabel: 'Supuestos invertidos',
+            placeholder: 'Ej:\n- ¿Y si NO tuviera horarios fijos sino que apareciera cuando lo necesites?\n- ¿Y si los usuarios NO fueran a ningún lado sino que el destino viniera a ellos?\n- ¿Y si NO hubiera conductor?\n- ¿Y si fuera gratis?\n- ¿Y si la ruta la decidieran los pasajeros en tiempo real?'
+          },
+          {
+            title: 'Genera ideas desde las inversiones',
+            time: 4,
+            instructions: 'Usa cada inversión como trampolín creativo. Pregúntate: <strong>"¿Cómo podría funcionar esto en la realidad?"</strong> Transforma las provocaciones absurdas en ideas realizables.',
+            tip: '💡 No todas las inversiones darán ideas viables, pero las que sí lo hagan serán muy originales.',
+            inputLabel: 'Ideas generadas a partir de las inversiones',
+            placeholder: 'Ej: "Sin horarios fijos" → App que detecte demanda en tiempo real y envíe micro-buses\n"Sin conductor" → Vehículos autónomos comunitarios...'
+          },
+          {
+            title: 'Desarrolla tus mejores ideas',
+            time: 3,
+            instructions: 'Selecciona las <strong>2-3 ideas más prometedoras</strong> y desarróllalas. ¿Cómo funcionarían? ¿Qué las hace innovadoras? ¿Cuál sería el primer paso para implementarlas?',
+            tip: '💡 Una idea que desafía la lógica convencional pero es viable = innovación disruptiva.',
+            inputLabel: 'Tus mejores ideas desarrolladas',
+            placeholder: 'Describe con detalle tus ideas más prometedoras...'
+          }
+        ]
+      },
+
+      analogies: {
+        name: 'Analogías y Metáforas',
+        icon: '🔗',
+        steps: [
+          {
+            title: 'Define tu reto creativo',
+            time: 3,
+            instructions: 'Describe el <strong>problema o desafío</strong> que quieres abordar. Esta técnica te ayudará a encontrar soluciones buscando paralelismos en dominios completamente diferentes.',
+            tip: '💡 Describe el problema en términos funcionales: ¿qué necesitas lograr?',
+            inputLabel: '¿Cuál es tu reto?',
+            placeholder: 'Ej: ¿Cómo podemos mejorar la retención de clientes en una tienda en línea?'
+          },
+          {
+            title: 'Elige un dominio analógico',
+            time: 3,
+            instructions: 'Elige un <strong>campo o dominio muy diferente</strong> a tu problema. Cuanto más lejano sea, más creativas serán las conexiones. Puedes usar las sugerencias o pensar en uno propio.',
+            tip: '💡 Los mejores dominios son los que conoces bien pero no tienen relación obvia con tu reto.',
+            hasAnalogyPicker: true,
+            inputLabel: '¿Qué dominio elegiste y por qué?',
+            placeholder: 'Ej: Elegí "Naturaleza" porque los ecosistemas tienen mecanismos fascinantes de retención y adaptación...'
+          },
+          {
+            title: 'Describe cómo funciona el dominio',
+            time: 5,
+            instructions: 'Describe en detalle <strong>cómo funciona el dominio que elegiste</strong>. ¿Cuáles son sus principios? ¿Qué mecanismos usa? ¿Qué lo hace exitoso? Olvídate de tu problema por un momento y sumérgete en el otro mundo.',
+            tip: '💡 Sé específico. En vez de "la naturaleza se adapta", escribe "las plantas giran hacia la luz, las raíces buscan agua, el camuflaje protege".',
+            inputLabel: 'Descripción del funcionamiento del dominio analógico',
+            placeholder: 'Ej: En un ecosistema, las abejas polinizan a cambio de néctar (beneficio mutuo). Las plantas tienen raíces profundas para resistir tormentas. Los árboles se conectan por hongos subterráneos para compartir nutrientes...'
+          },
+          {
+            title: 'Transfiere los principios',
+            time: 7,
+            instructions: 'Ahora viene la magia: <strong>mapea los principios del dominio analógico a tu reto original</strong>. Para cada mecanismo, pregúntate: "¿Cómo se vería esto aplicado a mi problema?"',
+            tip: '💡 Usa la estructura: "[Principio del dominio] → [Aplicación a mi reto]"',
+            inputLabel: 'Transferencia de principios a tu reto',
+            placeholder: 'Ej:\n"Beneficio mutuo abeja-flor" → Programa de lealtad donde clientes ganan puntos Y aportan reseñas\n"Raíces profundas" → Crear vínculos emocionales profundos con el cliente, no solo transaccionales\n"Red de hongos" → Conectar clientes entre sí en una comunidad...'
+          },
+          {
+            title: 'Desarrolla tus mejores ideas',
+            time: 5,
+            instructions: 'Selecciona las <strong>2-3 analogías más poderosas</strong> y conviértelas en ideas concretas y realizables. Detalla cómo funcionarían en la práctica.',
+            tip: '💡 Las mejores ideas analógicas se pueden explicar con una metáfora simple: "Es como [X] pero aplicado a [Y]".',
+            inputLabel: 'Tus mejores ideas desarrolladas',
+            placeholder: 'Describe con detalle tus ideas más prometedoras...'
+          }
+        ]
+      }
+    };
+
+    // ==================== STATE ====================
+    let currentTechnique = null;
+    let currentStep = 0;
+    let userInputs = {};
+    let stepTimerInterval = null;
+    let totalTimerInterval = null;
+    let stepSeconds = 0;
+    let totalSeconds = 0;
+    let stepTimerRunning = false;
+    let stepTargetSeconds = 0;
+
+    // ==================== NAVIGATION ====================
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goHome() {
+      clearInterval(stepTimerInterval);
+      clearInterval(totalTimerInterval);
+      stepTimerRunning = false;
+      showScreen('screen-home');
+    }
+
+    function startTechnique(techId) {
+      const name = document.getElementById('student-name').value.trim();
+      if (!name) {
+        document.getElementById('student-name').focus();
+        document.getElementById('student-name').style.borderColor = 'var(--danger)';
+        document.getElementById('student-name').style.boxShadow = '0 0 0 3px rgba(239,68,68,0.3)';
+        setTimeout(() => {
+          document.getElementById('student-name').style.borderColor = '';
+          document.getElementById('student-name').style.boxShadow = '';
+        }, 2000);
+        return;
+      }
+      currentTechnique = techId;
+      currentStep = 0;
+      userInputs = {};
+      totalSeconds = 0;
+      stepSeconds = 0;
+      stepTimerRunning = false;
+
+      const tech = TECHNIQUES[techId];
+      document.getElementById('tech-icon').textContent = tech.icon;
+      document.getElementById('tech-title').textContent = tech.name;
+
+      // Start total timer
+      clearInterval(totalTimerInterval);
+      totalTimerInterval = setInterval(() => {
+        totalSeconds++;
+        document.getElementById('total-timer').textContent = formatTime(totalSeconds);
+      }, 1000);
+
+      renderStep();
+      showScreen('screen-technique');
+    }
+
+    // ==================== STEP RENDERING ====================
+    function renderStep() {
+      const tech = TECHNIQUES[currentTechnique];
+      const step = tech.steps[currentStep];
+
+      // Progress bar
+      let progressHTML = '';
+      tech.steps.forEach((s, i) => {
+        const dotClass = i < currentStep ? 'completed' : (i === currentStep ? 'active' : '');
+        const lineClass = i < currentStep ? 'completed' : '';
+        progressHTML += `<div class="progress-step">
+          <div class="progress-dot ${dotClass}" onclick="jumpToStep(${i})">${i < currentStep ? '✓' : i + 1}</div>
+          ${i < tech.steps.length - 1 ? `<div class="progress-line ${lineClass}"></div>` : ''}
+        </div>`;
+      });
+      document.getElementById('progress-steps').innerHTML = progressHTML;
+
+      // Step content
+      let contentHTML = '<div class="step-container">';
+      contentHTML += `<div class="step-badge">Paso ${currentStep + 1} de ${tech.steps.length} · ⏱ ${step.time} min estimados</div>`;
+
+      // SCAMPER letter badge
+      if (step.scamperLetter) {
+        contentHTML += `<div class="scamper-letter" style="background:${step.scamperColor}">${step.scamperLetter}</div>`;
+      }
+
+      contentHTML += `<h3>${step.title}</h3>`;
+      contentHTML += `<p class="step-instructions">${step.instructions}</p>`;
+
+      if (step.tip) {
+        contentHTML += `<div class="step-tip">${step.tip}</div>`;
+      }
+
+      // Random stimulus generator
+      if (step.hasGenerator) {
+        contentHTML += `<div class="stimulus-generator">
+          <button class="btn btn-generate" onclick="generateStimulus()">🎲 Generar Estímulo Aleatorio</button>
+          <div class="stimulus-display" id="stimulus-display">
+            <div style="color:var(--text-muted)">Presiona el botón para generar un estímulo</div>
+          </div>
+        </div>`;
+      }
+
+      // Analogy domain picker
+      if (step.hasAnalogyPicker) {
+        contentHTML += '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:10px; margin-bottom:20px;">';
+        ANALOGY_DOMAINS.forEach(d => {
+          contentHTML += `<div style="background:var(--bg-glass); border:1px solid var(--border-glass); border-radius:var(--radius-sm); padding:14px; cursor:pointer; transition:var(--transition); text-align:center;" 
+            onmouseover="this.style.borderColor='var(--accent-green)'; this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.borderColor=''; this.style.transform=''"
+            onclick="selectDomain('${d.name}', this)">
+            <div style="font-size:1.8rem; margin-bottom:6px;">${d.emoji}</div>
+            <div style="font-weight:600; margin-bottom:4px;">${d.name}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${d.examples}</div>
+          </div>`;
+        });
+        contentHTML += '</div>';
+      }
+
+      // Text input
+      if (step.inputLabel) {
+        const savedValue = userInputs[`${currentTechnique}_${currentStep}`] || '';
+        contentHTML += `<div class="idea-input-group">
+          <label for="step-input">${step.inputLabel}</label>
+          <textarea class="idea-textarea" id="step-input" placeholder="${step.placeholder || ''}" 
+            oninput="saveInput()">${savedValue}</textarea>
+        </div>`;
+      }
+
+      contentHTML += '</div>';
+      document.getElementById('step-content').innerHTML = contentHTML;
+
+      // Nav buttons
+      document.getElementById('btn-prev').style.display = currentStep === 0 ? 'none' : '';
+      if (currentStep === tech.steps.length - 1) {
+        document.getElementById('btn-next').textContent = '✅ Finalizar';
+        document.getElementById('btn-next').className = 'btn btn-success';
+      } else {
+        document.getElementById('btn-next').textContent = 'Siguiente →';
+        document.getElementById('btn-next').className = 'btn btn-primary';
+      }
+
+      // Reset step timer
+      resetStepTimer();
+      stepTargetSeconds = step.time * 60;
+    }
+
+    function jumpToStep(index) {
+      if (index <= currentStep) {
+        saveInput();
+        currentStep = index;
+        renderStep();
+      }
+    }
+
+    function nextStep() {
+      saveInput();
+      const tech = TECHNIQUES[currentTechnique];
+      if (currentStep < tech.steps.length - 1) {
+        currentStep++;
+        renderStep();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        finishTechnique();
+      }
+    }
+
+    function prevStep() {
+      saveInput();
+      if (currentStep > 0) {
+        currentStep--;
+        renderStep();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function saveInput() {
+      const input = document.getElementById('step-input');
+      if (input) {
+        userInputs[`${currentTechnique}_${currentStep}`] = input.value;
+      }
+    }
+
+    // ==================== TIMER ====================
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function toggleStepTimer() {
+      const btn = document.getElementById('btn-timer-toggle');
+      if (stepTimerRunning) {
+        clearInterval(stepTimerInterval);
+        stepTimerRunning = false;
+        btn.textContent = '▶ Continuar';
+      } else {
+        stepTimerRunning = true;
+        btn.textContent = '⏸ Pausar';
+        stepTimerInterval = setInterval(() => {
+          stepSeconds++;
+          document.getElementById('step-timer').textContent = formatTime(stepSeconds);
+          // Warning states
+          const box = document.getElementById('step-timer-box');
+          const ratio = stepSeconds / stepTargetSeconds;
+          box.classList.remove('warning', 'danger');
+          if (ratio >= 1) {
+            box.classList.add('danger');
+          } else if (ratio >= 0.75) {
+            box.classList.add('warning');
+          }
+        }, 1000);
+      }
+    }
+
+    function resetStepTimer() {
+      clearInterval(stepTimerInterval);
+      stepTimerRunning = false;
+      stepSeconds = 0;
+      document.getElementById('step-timer').textContent = '00:00';
+      document.getElementById('btn-timer-toggle').textContent = '▶ Iniciar';
+      const box = document.getElementById('step-timer-box');
+      box.classList.remove('warning', 'danger');
+    }
+
+    // ==================== GENERATORS ====================
+    function generateStimulus() {
+      const idx = Math.floor(Math.random() * STIMULI_BANK.length);
+      const s = STIMULI_BANK[idx];
+      const display = document.getElementById('stimulus-display');
+      display.style.animation = 'none';
+      display.offsetHeight; // trigger reflow
+      display.style.animation = 'fadeIn 0.4s ease';
+      display.innerHTML = `
+        <div class="stimulus-emoji">${s.emoji}</div>
+        <div class="stimulus-word">${s.word}</div>
+        <div class="stimulus-category">${s.cat}</div>
+      `;
+    }
+
+    function selectDomain(name, el) {
+      const input = document.getElementById('step-input');
+      if (input && !input.value.includes(name)) {
+        input.value = (input.value ? input.value + '\n' : '') + `Dominio elegido: ${name}\n`;
+        saveInput();
+      }
+      el.style.borderColor = 'var(--accent-green)';
+      el.style.background = 'rgba(16,185,129,0.1)';
+    }
+
+    // ==================== FINISH ====================
+    function finishTechnique() {
+      clearInterval(stepTimerInterval);
+      clearInterval(totalTimerInterval);
+
+      const tech = TECHNIQUES[currentTechnique];
+      const studentName = document.getElementById('student-name').value.trim();
+
+      // Build summary
+      let summaryHTML = '';
+      let hasContent = false;
+      tech.steps.forEach((step, i) => {
+        const val = userInputs[`${currentTechnique}_${i}`] || '';
+        if (val.trim()) {
+          hasContent = true;
+          summaryHTML += `<div class="summary-card">
+            <h4>${step.scamperLetter ? step.scamperLetter + ' — ' : ''}${step.title}</h4>
+            <div class="summary-step-title">Paso ${i + 1} de ${tech.steps.length}</div>
+            <div class="summary-content">${escapeHTML(val)}</div>
+          </div>`;
+        }
+      });
+
+      if (!hasContent) {
+        summaryHTML = `<div class="summary-card">
+          <p style="color:var(--text-muted); text-align:center;">No se registraron ideas. ¡Intenta de nuevo! 😊</p>
+        </div>`;
+      }
+
+      document.getElementById('summary-content').innerHTML = `
+        <div style="text-align:center; margin-bottom:24px;">
+          <span style="font-size:2rem;">${tech.icon}</span>
+          <span style="font-family:'Space Grotesk'; font-size:1.3rem; font-weight:700; margin-left:8px;">${tech.name}</span>
+          <div style="color:var(--text-muted); font-size:0.9rem; margin-top:4px;">
+            👤 ${escapeHTML(studentName)} · ⏳ Tiempo total: ${formatTime(totalSeconds)}
+          </div>
+        </div>
+        ${summaryHTML}
+      `;
+
+      // Prepare PDF content
+      let pdfHTML = `
+        <h1>💡 Laboratorio de Creatividad</h1>
+        <div class="pdf-subtitle">${tech.icon} Técnica: ${tech.name}</div>
+        <div class="pdf-info">
+          👤 Estudiante: ${escapeHTML(studentName)}<br>
+          📅 Fecha: ${new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}<br>
+          ⏳ Tiempo total: ${formatTime(totalSeconds)}
+        </div>
+      `;
+      tech.steps.forEach((step, i) => {
+        const val = userInputs[`${currentTechnique}_${i}`] || '';
+        if (val.trim()) {
+          pdfHTML += `<div class="pdf-section">
+            <h3>${step.scamperLetter ? step.scamperLetter + ' — ' : ''}Paso ${i + 1}: ${step.title}</h3>
+            <div class="pdf-step-label">Tiempo estimado: ${step.time} minutos</div>
+            <div class="pdf-text">${escapeHTML(val)}</div>
+          </div>`;
+        }
+      });
+      pdfHTML += `<div class="pdf-footer">Generado con Laboratorio de Creatividad · ${new Date().toLocaleString('es-MX')}</div>`;
+      document.getElementById('pdf-content').innerHTML = pdfHTML;
+
+      showScreen('screen-summary');
+    }
+
+    function escapeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ==================== PDF EXPORT ====================
+    function downloadPDF() {
+      const element = document.getElementById('pdf-content');
+      const studentName = document.getElementById('student-name').value.trim() || 'Estudiante';
+      const techName = TECHNIQUES[currentTechnique].name;
+      const fileName = `Creatividad_${techName.replace(/\s+/g, '_')}_${studentName.replace(/\s+/g, '_')}.pdf`;
+
+      // Temporarily show for rendering
+      element.style.position = 'static';
+      element.style.left = '0';
+      element.style.top = '0';
+
+      const opt = {
+        margin: [10, 15, 10, 15],
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        element.style.position = 'absolute';
+        element.style.left = '-9999px';
+        element.style.top = '-9999px';
+      });
+    }
+  </script>
+</body>
+</html>
