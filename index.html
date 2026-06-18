@@ -200,20 +200,23 @@
     .timers-bar {
       display: flex; gap: 16px; justify-content: center;
       margin-bottom: 24px; flex-wrap: wrap;
+      position: sticky; top: 10px; z-index: 50;
     }
     .timer-box {
       background: var(--bg-glass); border: 1px solid var(--border-glass);
-      border-radius: var(--radius-sm); padding: 12px 20px;
-      text-align: center; min-width: 150px;
+      border-radius: var(--radius-sm); padding: 8px 16px;
+      text-align: center; min-width: auto;
       backdrop-filter: blur(20px);
+      display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .timer-box .timer-label {
-      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--text-muted); margin-bottom: 4px;
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-muted); margin-bottom: 2px; text-align: left;
     }
     .timer-box .timer-value {
       font-family: 'Space Grotesk', monospace;
-      font-size: 1.8rem; font-weight: 700;
+      font-size: 1.4rem; font-weight: 700; text-align: left; line-height: 1;
     }
     .timer-box.step-timer .timer-value { color: var(--accent-cyan); }
     .timer-box.total-timer .timer-value { color: var(--accent-purple); }
@@ -393,9 +396,9 @@
 
     /* Timer controls */
     .timer-controls {
-      display: flex; gap: 8px; justify-content: center; margin-top: 12px;
+      display: flex; gap: 6px; justify-content: center; margin-top: 0;
     }
-    .timer-controls .btn { padding: 8px 16px; font-size: 0.85rem; }
+    .timer-controls .btn { padding: 6px 12px; font-size: 0.8rem; }
 
     /* === SUMMARY SCREEN === */
     .summary-header {
@@ -516,8 +519,8 @@
             <div class="card-title">Estímulos Aleatorios</div>
             <div class="card-desc">Genera conexiones inesperadas entre tu reto y estímulos al azar para producir ideas originales.</div>
             <div class="card-meta">
-              <span>⏱ ~20 min</span>
-              <span>📋 5 pasos</span>
+              <span>⏱ ~18 min</span>
+              <span>📋 4 pasos</span>
             </div>
           </div>
 
@@ -570,16 +573,20 @@
 
         <div class="timers-bar">
           <div class="timer-box step-timer" id="step-timer-box">
-            <div class="timer-label">⏱ Tiempo del paso</div>
-            <div class="timer-value" id="step-timer">00:00</div>
+            <div>
+              <div class="timer-label">⏱ Tiempo del paso</div>
+              <div class="timer-value" id="step-timer">00:00</div>
+            </div>
             <div class="timer-controls">
               <button class="btn btn-secondary" onclick="toggleStepTimer()" id="btn-timer-toggle">▶ Iniciar</button>
               <button class="btn btn-secondary" onclick="resetStepTimer()">↺ Reiniciar</button>
             </div>
           </div>
           <div class="timer-box total-timer">
-            <div class="timer-label">⏳ Tiempo total</div>
-            <div class="timer-value" id="total-timer">00:00</div>
+            <div>
+              <div class="timer-label">⏳ Tiempo total</div>
+              <div class="timer-value" id="total-timer">00:00</div>
+            </div>
           </div>
         </div>
 
@@ -687,21 +694,13 @@
             placeholder: 'Ej: ¿Cómo podríamos hacer que los estudiantes se interesen más por las matemáticas?'
           },
           {
-            title: 'Genera un estímulo aleatorio',
-            time: 2,
-            instructions: 'Presiona el botón para obtener una <strong>palabra o concepto al azar</strong>. Este estímulo te sacará de tu zona de confort mental. Puedes generar varios hasta que uno te intrigue.',
-            tip: '💡 No busques el estímulo "perfecto". La magia está en forzar conexiones con estímulos que parecen irrelevantes.',
-            hasGenerator: true,
-            inputLabel: '¿Qué estímulo(s) elegiste y por qué te llamó la atención?',
-            placeholder: 'Escribe el estímulo elegido y qué te sugiere a primera vista...'
-          },
-          {
-            title: 'Explora atributos del estímulo',
+            title: 'Estímulo aleatorio y atributos',
             time: 5,
-            instructions: 'Lista todas las <strong>características, funciones y asociaciones</strong> del estímulo elegido. Piensa en: ¿qué hace?, ¿cómo funciona?, ¿qué forma tiene?, ¿con qué se relaciona?, ¿qué sensaciones evoca?',
-            tip: '💡 Escribe al menos 8-10 atributos. Entre más detalles, más conexiones posibles encontrarás.',
-            inputLabel: 'Atributos y características del estímulo',
-            placeholder: 'Ej: (Espejo) → refleja, invierte, multiplica, es frágil, necesita luz, distorsiona, muestra la verdad...'
+            instructions: 'Genera un estímulo y lista todas sus <strong>características, funciones y asociaciones</strong>. ¿Qué hace? ¿Cómo funciona? ¿Con qué se relaciona?',
+            tip: '💡 No busques el estímulo "perfecto". La magia está en forzar conexiones con estímulos que parecen irrelevantes. Escribe al menos 8-10 atributos.',
+            hasGenerator: true,
+            inputLabel: 'Atributos y características del estímulo elegido',
+            placeholder: 'Ej: (Espejo) → refleja, invierte, multiplica, es frágil, necesita luz, distorsiona...'
           },
           {
             title: 'Fuerza conexiones',
@@ -991,6 +990,16 @@
       let contentHTML = '<div class="step-container">';
       contentHTML += `<div class="step-badge">Paso ${currentStep + 1} de ${tech.steps.length} · ⏱ ${step.time} min estimados</div>`;
 
+      // Render Challenge if step > 0
+      if (currentStep > 0 && userInputs[`${currentTechnique}_0`]) {
+        contentHTML += `
+          <div style="background: rgba(139,92,246,0.1); border-left: 3px solid var(--accent-purple); padding: 12px 16px; margin-bottom: 24px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.9rem;">
+            <strong style="color: var(--accent-purple); display: block; margin-bottom: 4px;">🎯 Tu reto creativo:</strong>
+            <div style="color: var(--text-primary); white-space: pre-wrap;">${escapeHTML(userInputs[`${currentTechnique}_0`])}</div>
+          </div>
+        `;
+      }
+
       // SCAMPER letter badge
       if (step.scamperLetter) {
         contentHTML += `<div class="scamper-letter" style="background:${step.scamperColor}">${step.scamperLetter}</div>`;
@@ -1201,6 +1210,7 @@
       `;
 
       // Prepare PDF content
+      const retoInput = userInputs[`${currentTechnique}_0`] || 'No especificado';
       let pdfHTML = `
         <h1>💡 Laboratorio de Creatividad</h1>
         <div class="pdf-subtitle">${tech.icon} Técnica: ${tech.name}</div>
@@ -1209,8 +1219,13 @@
           📅 Fecha: ${new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}<br>
           ⏳ Tiempo total: ${formatTime(totalSeconds)}
         </div>
+        <div class="pdf-section" style="background:#f8f8fc; padding:15px; border-radius:8px; border-left:4px solid #8b5cf6; margin-bottom:24px;">
+          <h3 style="font-size:15px; color:#8b5cf6; margin-bottom:6px; font-family:'Space Grotesk', sans-serif;">🎯 Reto Creativo</h3>
+          <div style="font-size:13px; color:#333; white-space:pre-wrap;">${escapeHTML(retoInput)}</div>
+        </div>
       `;
       tech.steps.forEach((step, i) => {
+        if (i === 0) return; // Skip reto since we already showed it at top
         const val = userInputs[`${currentTechnique}_${i}`] || '';
         if (val.trim()) {
           pdfHTML += `<div class="pdf-section">
