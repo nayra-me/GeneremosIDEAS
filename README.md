@@ -1,2 +1,2 @@
-# MiPrimerProyecto
+# GeneremosIDEAS
 Prueba Git-Hub+Antigravity
